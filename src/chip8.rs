@@ -12,13 +12,15 @@ pub struct Chip8 {
 }
 
 impl Chip8 {
+    /// Constructs a new virtual chip8 CPU, with standard chip8 fonts loaded
+    /// into memory
     pub fn new() -> Self {
         let mut cpu = Chip8 {
             ram: [0; RAM_SIZE],
             stack: [0; 16],
             v: [0; 16],
             i: 0,
-            pc: 0,
+            pc: 0x200,
             sp: 0
         };
         for (i, &font) in fonts::FONTS.iter().enumerate() {
@@ -27,17 +29,36 @@ impl Chip8 {
 
         cpu
     }
-
+    
+    /// Loads a program in the form of a u8 array into the chip8 memory
     pub fn load_rom(&mut self, rom: &[u8]) {
         for (i, &b) in rom.iter().enumerate() {
             self.ram[i + 0x200] = rom[i];
         }
+    } 
+
+    // Returns the opcode at the program counter
+    fn get_opcode(&mut self) -> u16 {
+        return (self.ram[self.pc] as u16) << 8 | (self.ram[self.pc + 1] as u16)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    // helper function
+    fn make_chip8_and_load_rom() -> Chip8 {
+        let mut chip8 = Chip8::new();
+
+        // just some arbitrary values for testing
+        let rom: [u8; 7] = [
+            0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x70, 0x10
+        ];
+        chip8.load_rom(&rom);
+
+        chip8
+    }
     
     #[test]
     fn test_new_chip8() {
@@ -55,16 +76,17 @@ mod tests {
 
     #[test]
     fn test_load_rom() {
-        let mut chip8 = Chip8::new();
-        // just some arbitrary values for testing
-        let rom: [u8; 7] = [
-            0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x70, 0x10 
-        ];
-
-        chip8.load_rom(&rom);
+        let chip8 = make_chip8_and_load_rom();
         
         assert_eq!(chip8.ram[0x200], 0xFF);
         assert_eq!(chip8.ram[0x206], 0x10);
         assert_eq!(chip8.ram[0x207], 0);
+    }
+
+    #[test]
+    fn test_get_opcode() {
+        let mut chip8 = make_chip8_and_load_rom();
+
+        assert_eq!(chip8.get_opcode(), 0xFFFF)
     }
 }

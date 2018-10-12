@@ -2,5 +2,5 @@ mod chip8;
 mod fonts;
 
 fn main() {
-    println!("Hello, world!");
+    let mut chip = chip8::Chip8::new();
 }
