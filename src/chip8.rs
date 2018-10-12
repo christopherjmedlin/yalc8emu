@@ -148,4 +148,12 @@ mod tests {
         assert_eq!(chip8.pc, 0x200);
         assert_eq!(chip8.sp, 0);
     }
+
+    #[test]
+    fn test_1nnn() {
+        let mut chip8 = Chip8::new();
+
+        chip8.run_opcode(0x1FFF);
+        assert_eq!(chip8.pc, 0xFFF);
+    }
 }
