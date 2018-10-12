@@ -4,7 +4,7 @@ use fonts;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
-    stack: [u16; 16],
+    stack: [usize; 16],
     v: [u8; 16],
     i: usize,
     pc: usize,
@@ -37,9 +37,54 @@ impl Chip8 {
         }
     } 
 
+    pub fn run_opcode(&mut self, opcode: u16) {
+        let nibbles = (
+            (opcode & 0xf000) >> 12 as u8,
+            (opcode & 0x0f00) >> 8 as u8,
+            (opcode & 0x00f0) >> 4 as u8,
+            (opcode & 0x000f) as u8
+        );
+        let nnn = (opcode & 0x0FFF) as usize;
+        let kk = (opcode & 0x00FF) as u8;
+        let x = nibbles.1 as usize;
+        let y = nibbles.2 as usize;
+        let n = nibbles.3 as usize;
+        
+        match nibbles {
+            (0x0, 0x0, 0xE, 0x0) => self.op_00E0(),
+            (0x0, 0x0, 0xE, 0xE) => self.op_00EE(),
+            (0x1, _, _, _) => self.op_1nnn(nnn),
+            (0x2, _, _, _) => self.op_2nnn(nnn),
+            _ => println!("Unimplemented opcode: {}", opcode)
+        }
+    }
+
     // Returns the opcode at the program counter
     fn get_opcode(&mut self) -> u16 {
         return (self.ram[self.pc] as u16) << 8 | (self.ram[self.pc + 1] as u16)
+    }
+    
+    // Clear display
+    fn op_00E0(&mut self) {
+        //unimplemented
+    }
+    
+    // Return from subroutine
+    fn op_00EE(&mut self) {
+        self.pc = self.stack[self.sp];
+        self.sp -= 1;
+    }
+    
+    // Jump to address nnn
+    fn op_1nnn(&mut self, nnn: usize) {
+        self.pc = nnn;
+    }
+    
+    // Jump to subroutine at nnn
+    fn op_2nnn(&mut self, nnn: usize) {
+        self.sp += 1;
+        self.stack[self.sp] = self.pc;
+        self.pc = nnn;
     }
 }
 
@@ -87,6 +132,20 @@ mod tests {
     fn test_get_opcode() {
         let mut chip8 = make_chip8_and_load_rom();
 
-        assert_eq!(chip8.get_opcode(), 0xFFFF)
+        assert_eq!(chip8.get_opcode(), 0xFFFF);
+    }  
+
+    #[test]
+    fn test_2nnn_and_00EE() {
+        let mut chip8 = Chip8::new();
+
+        // jump to subroutine at 0x205
+        chip8.run_opcode(0x2205);
+        assert_eq!(chip8.pc, 0x205);
+        assert_eq!(chip8.stack[1], 0x200);
+
+        chip8.run_opcode(0x00EE);
+        assert_eq!(chip8.pc, 0x200);
+        assert_eq!(chip8.sp, 0);
     }
 }
