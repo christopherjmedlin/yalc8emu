@@ -55,6 +55,8 @@ impl Chip8 {
             (0x0, 0x0, 0xE, 0xE) => self.op_00EE(),
             (0x1, _, _, _) => self.op_1nnn(nnn),
             (0x2, _, _, _) => self.op_2nnn(nnn),
+            (0x3, _, _, _) => self.op_3xkk(x, kk),
+            (0x4, _, _, _) => self.op_4xkk(x, kk),
             _ => println!("Unimplemented opcode: {}", opcode)
         }
     }
@@ -86,7 +88,21 @@ impl Chip8 {
         self.stack[self.sp] = self.pc;
         self.pc = nnn;
     }
-}
+
+    // Skip if Vx equals kk
+    fn op_3xkk(&mut self, x: usize, kk: u8) {
+        if self.v[x] == kk {
+            self.pc += 2;
+        }
+    }
+
+    // Skip if Vx DOESNT equal kk
+    fn op_4xkk(&mut self, x: usize, kk: u8) {
+        if self.v[x] != kk {
+            self.pc += 2;
+        }
+    }
+}   
 
 #[cfg(test)]
 mod tests {
@@ -155,5 +171,31 @@ mod tests {
 
         chip8.run_opcode(0x1FFF);
         assert_eq!(chip8.pc, 0xFFF);
+    }
+
+    #[test]
+    fn test_3xkk_and_4xkk() {
+        let mut chip8 = Chip8::new();
+        chip8.v[0] = 2;
+        
+        // not equal
+        chip8.run_opcode(0x3003);
+        // shouldn't skip
+        assert_eq!(chip8.pc, 0x200);
+        
+        // equal
+        chip8.run_opcode(0x3002);
+        // should skip
+        assert_eq!(chip8.pc, 0x202);
+
+        // not equal
+        chip8.run_opcode(0x4003);
+        // should skip
+        assert_eq!(chip8.pc, 0x204);
+
+        // equal
+        chip8.run_opcode(0x4002);
+        // shouldn't skip
+        assert_eq!(chip8.pc, 0x204);
     }
 }
