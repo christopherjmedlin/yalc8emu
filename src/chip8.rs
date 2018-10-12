@@ -61,6 +61,9 @@ impl Chip8 {
             (0x4, _, _, _) => self.op_4xkk(x, kk),
             (0x5, _, _, 0) => self.op_5xy0(x, y),
             (0x6, _, _, _) => self.op_6xkk(x, kk),
+            (0x7, _, _, _) => self.op_7xkk(x, kk),
+            (0x8, _, _, 0) => self.op_8xy0(x, y),
+            (0x8, _, _, 1) => self.op_8xy1(x, y),
             _ => self.unimplemented(opcode)
         };
 
@@ -127,6 +130,24 @@ impl Chip8 {
     // Put value kk into register Vx
     fn op_6xkk(&mut self, x: usize, kk: u8) -> (usize) {
         self.v[x] = kk;
+        2
+    }
+
+    // Add value kk to register Vx
+    fn op_7xkk(&mut self, x: usize, kk: u8) -> (usize) {
+        self.v[x] += kk;
+        2
+    }
+
+    // Stores value of register Vy in register Vx
+    fn op_8xy0(&mut self, x: usize, y: usize) -> (usize) {
+        self.v[x] = self.v[y];
+        2
+    }
+    
+    // Performs bitwise OR on Vx and Vy and stores result in Vx
+    fn op_8xy1(&mut self, x: usize, y: usize) -> (usize) {
+        self.v[x] |= self.v[y];
         2
     }
 
@@ -255,5 +276,33 @@ mod tests {
         chip8.run_opcode(0x600a);
 
         assert_eq!(chip8.v[0], 10);
+    }
+
+    #[test]
+    fn test_7xkk() {
+        let mut chip8 = Chip8::new();
+        chip8.v[1] = 5;
+        chip8.run_opcode(0x71FA);
+        
+        assert_eq!(chip8.v[1], 0xFF);
+    }
+
+    #[test]
+    fn test_8xy0() {
+        let mut chip8 = Chip8::new();
+        chip8.v[1] = 5;
+        chip8.run_opcode(0x8510);
+
+        assert_eq!(chip8.v[5], chip8.v[1]);
+    }
+
+    #[test]
+    fn test_8xy1() {
+        let mut chip8 = Chip8::new();
+        chip8.v[1] = 5;
+        chip8.v[5] = 10;
+        chip8.run_opcode(0x8511);
+
+        assert_eq!(chip8.v[5], 15);
     }
 }
