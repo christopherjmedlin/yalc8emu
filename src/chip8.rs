@@ -60,6 +60,7 @@ impl Chip8 {
             (0x3, _, _, _) => self.op_3xkk(x, kk),
             (0x4, _, _, _) => self.op_4xkk(x, kk),
             (0x5, _, _, 0) => self.op_5xy0(x, y),
+            (0x6, _, _, _) => self.op_6xkk(x, kk),
             _ => self.unimplemented(opcode)
         };
 
@@ -120,6 +121,12 @@ impl Chip8 {
         if self.v[x] == self.v[y] {
             return 4
         }
+        2
+    }
+
+    // Put value kk into register Vx
+    fn op_6xkk(&mut self, x: usize, kk: u8) -> (usize) {
+        self.v[x] = kk;
         2
     }
 
@@ -240,5 +247,13 @@ mod tests {
         chip8.run_opcode(0x5020);
         // should skip
         assert_eq!(chip8.pc, 0x206);
+    }
+    
+    #[test]
+    fn test_6xkk() {
+        let mut chip8 = Chip8::new();
+        chip8.run_opcode(0x600a);
+
+        assert_eq!(chip8.v[0], 10);
     }
 }
