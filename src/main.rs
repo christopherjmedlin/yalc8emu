@@ -1,6 +1,6 @@
-mod chip8;
+mod cpu;
 mod fonts;
 
 fn main() {
-    let mut chip = chip8::Chip8::new();
+    let mut chip = cpu::Chip8::new();
 }
