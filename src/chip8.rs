@@ -64,6 +64,9 @@ impl Chip8 {
             (0x7, _, _, _) => self.op_7xkk(x, kk),
             (0x8, _, _, 0) => self.op_8xy0(x, y),
             (0x8, _, _, 1) => self.op_8xy1(x, y),
+            (0x8, _, _, 2) => self.op_8xy2(x, y),
+            (0x8, _, _, 3) => self.op_8xy3(x, y),
+            (0x8, _, _, 4) => self.op_8xy4(x, y),
             _ => self.unimplemented(opcode)
         };
 
@@ -150,9 +153,40 @@ impl Chip8 {
         self.v[x] |= self.v[y];
         2
     }
+    
+    // Bitwise AND on Vx and Vy
+    fn op_8xy2(&mut self, x: usize, y: usize) -> (usize) {
+        self.v[x] &= self.v[y];
+        2
+    }
+   
+    // XOR Vx and Vy
+    fn op_8xy3(&mut self, x: usize, y: usize) -> (usize) {
+        self.v[x] ^= self.v[y];
+        2
+    }
+
+    // Add Vx and Vy and set VF to 1 if result greater than FF
+    fn op_8xy4(&mut self, x: usize, y: usize) -> (usize) {
+        let vx = self.v[x] as u16;
+        let vy = self.v[y] as u16;
+        let sum = vx + vy;
+        if sum > 0xFF {
+            self.v[0xF] = 1;
+        } else {
+            self.v[0xF] = 0;
+        }
+        self.v[x] = sum as u8;
+        2
+    }
+
+    // Subtract Vx to Vy - Vx and set VF to 1 if Vx > Vy
+    fn op_8xy5(&mut self, x: usize, y: usize) -> (usize) {
+        2
+    }
 
     fn unimplemented(&mut self, opcode: u16) -> (usize) {
-        println!("Unimplemented opcode: 0x{:x}", opcode);
+        println!("WARNING: unimplemented opcode: 0x{:x}", opcode);
         2
     }
 }   
@@ -161,7 +195,7 @@ impl Chip8 {
 mod tests {
     use super::*;
     
-    // helper function
+    // helper function for automating rom loading
     fn make_chip8_and_load_rom() -> Chip8 {
         let mut chip8 = Chip8::new();
 
@@ -270,39 +304,35 @@ mod tests {
         assert_eq!(chip8.pc, 0x206);
     }
     
-    #[test]
-    fn test_6xkk() {
-        let mut chip8 = Chip8::new();
-        chip8.run_opcode(0x600a);
+    // macro for generating tests for operations that modify a register
+    // 
+    // $name is the name of the generated function
+    // $op is the opcode to be ran
+    // $r1 is the value initialized in v[1]
+    // $r2 is the value initialized in v[2]
+    // $val is the value that v[2] 
+    // $carry is the expected value of the carry flag, aka v[F]
+    macro_rules! test_register_op {
+        ($name:ident, $op:expr, $r1:expr, $r2:expr, $val:expr, $carry:expr) => {
+            #[test]
+            fn $name() {
+                let mut chip8 = Chip8::new();
+                chip8.v[1] = $r1;
+                chip8.v[2] = $r2;
+                chip8.run_opcode($op);
 
-        assert_eq!(chip8.v[0], 10);
+                assert_eq!(chip8.v[2], $val);
+                assert_eq!(chip8.v[0xF], $carry);
+            }
+        }
     }
 
-    #[test]
-    fn test_7xkk() {
-        let mut chip8 = Chip8::new();
-        chip8.v[1] = 5;
-        chip8.run_opcode(0x71FA);
-        
-        assert_eq!(chip8.v[1], 0xFF);
-    }
-
-    #[test]
-    fn test_8xy0() {
-        let mut chip8 = Chip8::new();
-        chip8.v[1] = 5;
-        chip8.run_opcode(0x8510);
-
-        assert_eq!(chip8.v[5], chip8.v[1]);
-    }
-
-    #[test]
-    fn test_8xy1() {
-        let mut chip8 = Chip8::new();
-        chip8.v[1] = 5;
-        chip8.v[5] = 10;
-        chip8.run_opcode(0x8511);
-
-        assert_eq!(chip8.v[5], 15);
-    }
+    test_register_op!(test_6xkk, 0x620a, 0, 0, 10, 0);
+    test_register_op!(test_7xkk, 0x720a, 0, 10, 20, 0);
+    test_register_op!(test_8xy0, 0x8210, 5, 10, 5, 0);
+    test_register_op!(test_8xy1, 0x8211, 5, 20, 21, 0);
+    test_register_op!(test_8xy2, 0x8212, 5, 20, 4, 0);
+    test_register_op!(test_8xy3, 0x8213, 5, 20, 17, 0);
+    test_register_op!(test_8xy4, 0x8214, 5, 20, 25, 0);
+    test_register_op!(test_8xy4_carry, 0x8214, 200, 200, 144, 1);
 }
