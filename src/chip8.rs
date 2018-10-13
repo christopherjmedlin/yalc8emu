@@ -1,6 +1,7 @@
 const RAM_SIZE: usize = 4096;
 
 use fonts;
+use std::num::Wrapping;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
@@ -67,6 +68,7 @@ impl Chip8 {
             (0x8, _, _, 2) => self.op_8xy2(x, y),
             (0x8, _, _, 3) => self.op_8xy3(x, y),
             (0x8, _, _, 4) => self.op_8xy4(x, y),
+            (0x8, _, _, 5) => self.op_8xy5(x, y),
             _ => self.unimplemented(opcode)
         };
 
@@ -180,8 +182,14 @@ impl Chip8 {
         2
     }
 
-    // Subtract Vx to Vy - Vx and set VF to 1 if Vx > Vy
+    // Subtract Vy from Vx and set VF to 1 if Vx > Vy
     fn op_8xy5(&mut self, x: usize, y: usize) -> (usize) {
+        if self.v[x] > self.v[y] {
+            self.v[0xF] = 1;
+        } else {
+            self.v[0xF] = 0;
+        }
+        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
         2
     }
 
@@ -311,7 +319,7 @@ mod tests {
     // $r1 is the value initialized in v[1]
     // $r2 is the value initialized in v[2]
     // $val is the value that v[2] 
-    // $carry is the expected value of the carry flag, aka v[F]
+    // $carry is the expected value of vF, aka the carry and borrow flag
     macro_rules! test_register_op {
         ($name:ident, $op:expr, $r1:expr, $r2:expr, $val:expr, $carry:expr) => {
             #[test]
@@ -335,4 +343,6 @@ mod tests {
     test_register_op!(test_8xy3, 0x8213, 5, 20, 17, 0);
     test_register_op!(test_8xy4, 0x8214, 5, 20, 25, 0);
     test_register_op!(test_8xy4_carry, 0x8214, 200, 200, 144, 1);
+    test_register_op!(test_8xy5, 0x8215, 5, 20, 15, 1);
+    test_register_op!(test_8xy5_borrow, 0x8215, 20, 5, 241, 0);
 }
