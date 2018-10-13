@@ -69,6 +69,9 @@ impl Chip8 {
             (0x8, _, _, 3) => self.op_8xy3(x, y),
             (0x8, _, _, 4) => self.op_8xy4(x, y),
             (0x8, _, _, 5) => self.op_8xy5(x, y),
+            (0x8, _, _, 6) => self.op_8xy6(x),
+            (0x8, _, _, 7) => self.op_8xy7(x, y),
+            (0x8, _, _, 8) => self.op_8xy8(x),
             _ => self.unimplemented(opcode)
         };
 
@@ -190,6 +193,36 @@ impl Chip8 {
             self.v[0xF] = 0;
         }
         self.v[x] = self.v[x].wrapping_sub(self.v[y]);
+        2
+    }
+
+    // Shift Vx right by 1 and set VF to 1 if Vx is odd, 0 if even
+    //
+    // TODO: According to Wikipedia and Reddit some programs utilize Vy in this fashion:
+    // Vx=Vy=Vy>>1
+    // I should implement this in the form of an optional command line argument.
+    fn op_8xy6(&mut self, x: usize) -> (usize) {
+        self.v[0xF] = if self.v[x] & 1 == 1 {1} else {0};
+        self.v[x] >>= 1;
+        2
+    }
+
+    // Subtract Vx from Vy and set VF to 1 if Vy > Vx
+    // Basically 8xy5 but inverse
+    fn op_8xy7(&mut self, x: usize, y: usize) -> (usize) {
+        if self.v[y] > self.v[x] {
+            self.v[0xF] = 1;
+        } else {
+            self.v[0xF] = 0;
+        }
+        self.v[y] = self.v[y].wrapping_sub(self.v[x]);
+        2
+    }
+    
+    // Same as op_8xy6 but left shift
+    fn op_8xy8(&mut self, x: usize) -> (usize) {
+        self.v[0xF] = if self.v[x] & 1 == 1 {1} else {0};
+        self.v[x] <<= 1;
         2
     }
 
@@ -345,4 +378,10 @@ mod tests {
     test_register_op!(test_8xy4_carry, 0x8214, 200, 200, 144, 1);
     test_register_op!(test_8xy5, 0x8215, 5, 20, 15, 1);
     test_register_op!(test_8xy5_borrow, 0x8215, 20, 5, 241, 0);
+    test_register_op!(test_8xy6, 0x8216, 123, 20, 10, 0);
+    test_register_op!(test_8xy6_odd, 0x8216, 123, 21, 10, 1);
+    test_register_op!(test_8xy7, 0x8127, 5, 20, 15, 1);
+    test_register_op!(test_8xy7_borrow, 0x8127, 20, 5, 241, 0);
+    test_register_op!(test_8xy8, 0x8218, 123, 20, 40, 0);
+    test_register_op!(test_8xy8_odd, 0x8218, 123, 21, 42, 1);
 }
