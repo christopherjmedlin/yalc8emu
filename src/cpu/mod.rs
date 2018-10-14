@@ -4,6 +4,8 @@ use fonts;
 use std::num::Wrapping;
 use rand;
 
+mod timers;
+
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
     stack: [usize; 16],
