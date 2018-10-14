@@ -37,6 +37,27 @@ fn test_load_rom() {
 }
 
 #[test]
+fn test_cycle() {
+    let mut chip8 = Chip8::new();
+    
+    // just 3 simple instructions
+    chip8.load_rom(&[
+        0x61, 0x23, 0x82, 0x10, 0x12, 0x00
+    ]);
+    
+    chip8.cycle();
+    assert_eq!(chip8.pc, 0x202);
+    assert_eq!(chip8.v[1], 0x23);
+    
+    chip8.cycle();
+    assert_eq!(chip8.pc, 0x204);
+    assert_eq!(chip8.v[2], 0x23);
+
+    chip8.cycle();
+    assert_eq!(chip8.pc, 0x200);
+}
+
+#[test]
 fn test_get_opcode() {
     let mut chip8 = make_chip8_and_load_rom();
 

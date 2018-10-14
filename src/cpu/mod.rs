@@ -41,7 +41,12 @@ impl Chip8 {
         for (i, &b) in rom.iter().enumerate() {
             self.ram[i + 0x200] = rom[i];
         }
-    } 
+    }
+
+    pub fn cycle(&mut self) {
+        let op = self.get_opcode();
+        self.run_opcode(op);
+    }
 
     pub fn run_opcode(&mut self, opcode: u16) {
         let nibbles = (
