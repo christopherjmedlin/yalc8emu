@@ -2,6 +2,7 @@ const RAM_SIZE: usize = 4096;
 
 use fonts;
 use std::num::Wrapping;
+use rand;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
@@ -72,6 +73,22 @@ impl Chip8 {
             (0x8, _, _, 6) => self.op_8xy6(x),
             (0x8, _, _, 7) => self.op_8xy7(x, y),
             (0x8, _, _, 8) => self.op_8xy8(x),
+            (0x9, _, _, 0) => self.op_9xy0(x, y),
+            (0xA, _, _, _) => self.op_Annn(nnn),
+            (0xB, _, _, _) => self.op_Bnnn(nnn),
+            (0xC, _, _, _) => self.op_Cxkk(x, kk),
+            (0xD, _, _, _) => self.op_Dxyn(x, y, n),
+            (0xE, _, 9, 0xE) => self.op_Ex9E(x),
+            (0xE, _, 0xA, 1) => self.op_ExA1(x),
+            (0xF, _, 0, 7) => self.op_Fx07(x),
+            (0xF, _, 0, 0xA) => self.op_Fx0A(x),
+            (0xF, _, 1, 5) => self.op_Fx15(x),
+            (0xF, _, 1, 8) => self.op_Fx18(x),
+            (0xF, _, 1, 0xE) => self.op_Fx1E(x),
+            (0xF, _, 2, 9) => self.op_Fx29(x),
+            (0xF, _, 3, 3) => self.op_Fx33(x),
+            (0xF, _, 5, 5) => self.op_Fx55(x),
+            (0xF, _, 6, 5) => self.op_Fx65(x),
             _ => self.unimplemented(opcode)
         };
 
@@ -223,6 +240,117 @@ impl Chip8 {
     fn op_8xy8(&mut self, x: usize) -> (usize) {
         self.v[0xF] = if self.v[x] & 1 == 1 {1} else {0};
         self.v[x] <<= 1;
+        2
+    }
+
+    // Skip next instruction if Vx != Vy
+    fn op_9xy0(&mut self, x: usize, y: usize) -> (usize) {
+        if self.v[x] != self.v[y] {
+            return 4
+        }
+        2
+    }
+    
+    // Set I to nnn
+    fn op_Annn(&mut self, nnn: usize) -> (usize) {
+        self.i = nnn;
+        2
+    }
+
+    // Jump to nnn + V0
+    fn op_Bnnn(&mut self, nnn: usize) -> (usize) {
+        self.pc = nnn + (self.v[0] as usize);
+        0
+    }
+
+    // Store random byte ANDed by kk in Vx
+    fn op_Cxkk(&mut self, x: usize, kk: u8) -> (usize) {
+        let rn: u8 = rand::random();
+        self.v[x] = rn & kk;
+        2
+    }
+
+    // Display n-byte sprite starting at memory location I at (Vx, Vy)
+    fn op_Dxyn(&mut self, x: usize, y: usize, n: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Skip next instruction if key with the value of Vx is pressed
+    fn op_Ex9E (&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+    
+    // Skip next instruction if key with value of Vx is NOT pressed
+    fn op_ExA1(&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Set Vx = delay timer value
+    fn op_Fx07(&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Wait for key press, store value in Vx
+    fn op_Fx0A(&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Set delay timer = Vx
+    fn op_Fx15(&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Set sound timer = Vx
+    fn op_Fx18(&mut self, x: usize) -> (usize) {
+        // unimplemented
+        2
+    }
+
+    // Set I = I + Vx
+    fn op_Fx1E(&mut self, x: usize) -> (usize) {
+        self.i = self.v[x] as usize + self.i;
+        2
+    }
+    
+    // Set I = location of sprite for digit Vx
+    fn op_Fx29(&mut self, x: usize) -> (usize) {
+        self.i = (self.v[x] * 5) as usize;
+        2
+    }
+    
+    // Store BCD representation of Vx in ram starting at I
+    fn op_Fx33(&mut self, x: usize) -> (usize) {
+        self.ram[self.i] = self.v[x] / 100;
+        self.ram[self.i + 1] = (self.v[x] % 100) / 10;
+        self.ram[self.i + 2] = self.v[x] % 10;
+        2
+    }
+    
+    // Store registers into ram
+    fn op_Fx55(&mut self, x: usize) -> (usize) {
+        // prevent out of bounds
+        let end = if (x > 0xf) {0xf} else {x};
+
+        for addr in 0..end + 1 {
+            self.ram[self.i + addr] = self.v[addr];
+        }
+        2
+    }
+
+    // Read ram into registers
+    fn op_Fx65(&mut self, x: usize) -> (usize) {
+        // prevent out of bounds
+        let end = if (x > 0xf) {0xf} else {x};
+
+        for addr in 0..end + 1 {
+            self.v[addr] = self.ram[self.i + addr];
+        }
         2
     }
 

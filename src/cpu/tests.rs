@@ -148,3 +148,111 @@ test_register_op!(test_8xy7, 0x8127, 5, 20, 15, 1);
 test_register_op!(test_8xy7_borrow, 0x8127, 20, 5, 241, 0);
 test_register_op!(test_8xy8, 0x8218, 123, 20, 40, 0);
 test_register_op!(test_8xy8_odd, 0x8218, 123, 21, 42, 1);
+
+#[test]
+fn test_9xy0() {
+    let mut chip8 = Chip8::new();
+    chip8.v[0] = 5;
+    chip8.v[1] = 5;
+    chip8.v[2] = 1;
+
+    chip8.run_opcode(0x9010);
+    assert_eq!(chip8.pc, 0x202);
+    chip8.run_opcode(0x9020);
+    assert_eq!(chip8.pc, 0x206);
+}
+
+#[test]
+fn test_Annn() {
+    let mut chip8 = Chip8::new();
+    chip8.run_opcode(0xA20F);
+
+    assert_eq!(chip8.i, 0x20F);
+}
+
+#[test]
+fn test_Bnnn() {
+    let mut chip8 = Chip8::new();
+    chip8.v[0] = 5;
+    chip8.run_opcode(0xB200);
+
+    assert_eq!(chip8.pc, 0x205);
+}
+
+#[test]
+fn test_Cnnn() {
+    let mut chip8 = Chip8::new();
+    chip8.v[1] = 15;
+    chip8.run_opcode(0xC100);
+    assert_eq!(chip8.v[1], 0);
+}
+
+#[test]
+fn test_Fx1E() {
+    let mut chip8 = Chip8::new();
+    chip8.v[1] = 0x5;
+    chip8.i = 0x20F;
+    chip8.run_opcode(0xF11E);
+    
+    assert_eq!(chip8.i, 0x214);
+}
+
+#[test]
+fn test_Fx29() {
+    let mut chip8 = Chip8::new();
+    chip8.v[1] = 5;
+    chip8.run_opcode(0xF129);
+
+    assert_eq!(chip8.i, 25);
+
+    // verify that ram at I matches font
+    assert_eq!(chip8.ram[chip8.i], 0xF0);
+    assert_eq!(chip8.ram[chip8.i + 1], 0x80);
+    assert_eq!(chip8.ram[chip8.i + 2], 0xF0);
+    assert_eq!(chip8.ram[chip8.i + 3], 0x10);
+    assert_eq!(chip8.ram[chip8.i + 4], 0xF0);
+}
+
+#[test]
+fn test_Fx33() {
+    let mut chip8 = Chip8::new();
+    chip8.v[0] = 123;
+    chip8.i = 0x200;
+    chip8.run_opcode(0xF033);
+
+    assert_eq!(chip8.ram[0x200], 1);
+    assert_eq!(chip8.ram[0x201], 2);
+    assert_eq!(chip8.ram[0x202], 3);
+}
+
+#[test]
+fn test_Fx55() {
+    let mut chip8 = Chip8::new();
+    chip8.v[0] = 5;
+    chip8.v[5] = 30;
+    chip8.v[2] = 3;
+    chip8.v[0xF] = 4;
+    chip8.i = 0x200;
+    chip8.run_opcode(0xF555);
+
+    assert_eq!(chip8.ram[0x200], 5);
+    assert_eq!(chip8.ram[0x205], 30);
+    assert_eq!(chip8.ram[0x202], 3);
+    // should have stopped copying at V5
+    assert_ne!(chip8.ram[0x20F], 4);
+}
+
+#[test]
+fn test_Fx65() {
+    let mut chip8 = Chip8::new();
+    chip8.i = 0x200;
+    chip8.ram[0x200] = 1;
+    chip8.ram[0x201] = 2;
+    chip8.ram[0x202] = 3;
+    chip8.run_opcode(0xF165);
+
+    assert_eq!(chip8.v[0], 1);
+    assert_eq!(chip8.v[1], 2);
+    // should have stopped reading at 1
+    assert_ne!(chip8.v[2], 3);
+}
