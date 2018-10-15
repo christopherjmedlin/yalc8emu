@@ -1,10 +1,11 @@
 const RAM_SIZE: usize = 4096;
 
+mod timers;
+
 use fonts;
 use std::num::Wrapping;
 use rand;
-
-mod timers;
+use cpu::timers::TimerSubsystem;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
@@ -13,7 +14,7 @@ pub struct Chip8 {
     i: usize,
     pc: usize,
     sp: usize,
-    should_increment_pc: bool
+    timer_subsystem: TimerSubsystem
 }
 
 impl Chip8 {
@@ -27,7 +28,7 @@ impl Chip8 {
             i: 0,
             pc: 0x200,
             sp: 0,
-            should_increment_pc: false
+            timer_subsystem: TimerSubsystem::new()
         };
         for (i, &font) in fonts::FONTS.iter().enumerate() {
             cpu.ram[i] = font;     
@@ -46,6 +47,7 @@ impl Chip8 {
     pub fn cycle(&mut self) {
         let op = self.get_opcode();
         self.run_opcode(op);
+        self.timer_subsystem.cycle();
     }
 
     pub fn run_opcode(&mut self, opcode: u16) {
@@ -297,7 +299,7 @@ impl Chip8 {
 
     // Set Vx = delay timer value
     fn op_Fx07(&mut self, x: usize) -> (usize) {
-        // unimplemented
+        self.v[x] = self.timer_subsystem.delay;
         2
     }
 
@@ -309,13 +311,13 @@ impl Chip8 {
 
     // Set delay timer = Vx
     fn op_Fx15(&mut self, x: usize) -> (usize) {
-        // unimplemented
+        self.timer_subsystem.delay = self.v[x];
         2
     }
 
     // Set sound timer = Vx
     fn op_Fx18(&mut self, x: usize) -> (usize) {
-        // unimplemented
+        self.timer_subsystem.sound = self.v[x];
         2
     }
 

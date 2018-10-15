@@ -277,3 +277,23 @@ fn test_Fx65() {
     // should have stopped reading at 1
     assert_ne!(chip8.v[2], 3);
 }
+
+#[test]
+fn test_Fx07() {
+    let mut chip8 = Chip8::new();
+    chip8.timer_subsystem.delay = 50;
+    chip8.run_opcode(0xF007);
+
+    assert_eq!(chip8.v[0], chip8.timer_subsystem.delay);
+}
+
+#[test]
+fn test_Fx15_and_Fx18() {
+    let mut chip8 = Chip8::new();
+    chip8.v[0] = 50;
+    chip8.run_opcode(0xF015);
+    chip8.run_opcode(0xF018);
+
+    assert_eq!(chip8.timer_subsystem.delay, chip8.v[0]);
+    assert_eq!(chip8.timer_subsystem.sound, chip8.v[0]);
+}
