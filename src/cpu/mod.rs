@@ -9,7 +9,7 @@ use cpu::timers::TimerSubsystem;
 use display::Display;
 
 pub struct Chip8 {
-    ram: [u8; RAM_SIZE],
+    pub ram: [u8; RAM_SIZE],
     stack: [usize; 16],
     v: [u8; 16],
     i: usize,
@@ -53,6 +53,8 @@ impl Chip8 {
         let op = self.get_opcode();
         self.run_opcode(op);
         self.timer_subsystem.cycle();
+
+        println!("{:x}, {}", self.get_opcode(), self.pc);
     }
 
     pub fn run_opcode(&mut self, opcode: u16) {
@@ -86,7 +88,7 @@ impl Chip8 {
             (0x8, _, _, 5) => self.op_8xy5(x, y),
             (0x8, _, _, 6) => self.op_8xy6(x),
             (0x8, _, _, 7) => self.op_8xy7(x, y),
-            (0x8, _, _, 8) => self.op_8xy8(x),
+            (0x8, _, _, 0xE) => self.op_8xyE(x),
             (0x9, _, _, 0) => self.op_9xy0(x, y),
             (0xA, _, _, _) => self.op_Annn(nnn),
             (0xB, _, _, _) => self.op_Bnnn(nnn),
@@ -251,7 +253,7 @@ impl Chip8 {
     }
     
     // Same as op_8xy6 but left shift
-    fn op_8xy8(&mut self, x: usize) -> (usize) {
+    fn op_8xyE(&mut self, x: usize) -> (usize) {
         self.v[0xF] = if self.v[x] & 1 == 1 {1} else {0};
         self.v[x] <<= 1;
         2

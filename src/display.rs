@@ -1,16 +1,19 @@
 const DISPLAY_HEIGHT: usize = 32;
 const DISPLAY_WIDTH: usize = 64;
 
+use sdl2::video::Window;
+use sdl2::render::Canvas;
+
 pub struct Display {
     pixels: [[bool; 64]; 32],
-    changed: bool
+    changed: bool,
 }
 
 impl Display {
     pub fn new() -> Self {
         Display {
             pixels: [[false; DISPLAY_WIDTH]; DISPLAY_HEIGHT],
-            changed: true
+            changed: true,
         }
     }
     
@@ -38,6 +41,10 @@ impl Display {
         
         self.changed = true;
         pixels_cleared
+    }
+
+    pub fn render(&mut self, canvas: Canvas<Window>) {
+
     }
     
     pub fn clear(&mut self) {

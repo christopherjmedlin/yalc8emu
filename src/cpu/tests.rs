@@ -167,8 +167,8 @@ test_register_op!(test_8xy6, 0x8216, 123, 20, 10, 0);
 test_register_op!(test_8xy6_odd, 0x8216, 123, 21, 10, 1);
 test_register_op!(test_8xy7, 0x8127, 5, 20, 15, 1);
 test_register_op!(test_8xy7_borrow, 0x8127, 20, 5, 241, 0);
-test_register_op!(test_8xy8, 0x8218, 123, 20, 40, 0);
-test_register_op!(test_8xy8_odd, 0x8218, 123, 21, 42, 1);
+test_register_op!(test_8xyE, 0x821E, 123, 20, 40, 0);
+test_register_op!(test_8xyE_odd, 0x821E, 123, 21, 42, 1);
 
 #[test]
 fn test_9xy0() {

@@ -2,7 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::Read;
 
-fn load_rom_file(path: &str, buf: &mut [u8]) {
+pub fn load_rom_file(path: &str, buf: &mut [u8]) {
     let path = Path::new(path);
 
     let mut file = match File::open(&path) {

@@ -8,16 +8,38 @@ extern crate sdl2;
 
 use std::thread::sleep;
 use std::time::Duration;
+use std::env;
+
+use sdl2::event::Event;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
-
     let window = video.window("Chip8", 800, 600)
         .position_centered()
         .build()
         .unwrap();
     
-    sleep(Duration::from_millis(20000));
-    let mut chip = cpu::Chip8::new();
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    
+    let mut cpu = cpu::Chip8::new();
+    let mut rom = [0; 3583];
+    rom::load_rom_file(&args[1], &mut rom);
+    cpu.load_rom(&rom);
+
+    'main: loop {
+        cpu.cycle();
+
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} => { break 'main },
+                _ => {}
+            }
+        }
+        
+        // simulate ~60 hz
+        sleep(Duration::from_millis(2));
+    }
 }
