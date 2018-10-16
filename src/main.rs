@@ -1,6 +1,7 @@
 mod cpu;
 mod fonts;
 mod rom;
+mod display;
 
 extern crate rand;
 extern crate sdl2;
