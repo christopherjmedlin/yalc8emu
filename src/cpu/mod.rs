@@ -54,7 +54,7 @@ impl Chip8 {
         self.run_opcode(op);
         self.timer_subsystem.cycle();
 
-        println!("{:x}, {}", self.get_opcode(), self.pc);
+        //println!("{:x}, {}", self.get_opcode(), self.pc);
     }
 
     pub fn run_opcode(&mut self, opcode: u16) {
@@ -176,7 +176,8 @@ impl Chip8 {
 
     // Add value kk to register Vx
     fn op_7xkk(&mut self, x: usize, kk: u8) -> (usize) {
-        self.v[x] += kk;
+        let result = self.v[x] as u16 + kk as u16;
+        self.v[x] = result as u8;
         2
     }
 

@@ -11,6 +11,7 @@ use std::time::Duration;
 use std::env;
 
 use sdl2::event::Event;
+use sdl2::pixels::Color;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,6 +24,7 @@ fn main() {
         .unwrap();
     
     let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut canvas = window.into_canvas().build().unwrap();
     
     let mut cpu = cpu::Chip8::new();
     let mut rom = [0; 3583];
@@ -31,6 +33,9 @@ fn main() {
 
     'main: loop {
         cpu.cycle();
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        canvas.clear();
+        cpu.display.render(&mut canvas);
 
         for event in event_pump.poll_iter() {
             match event {
@@ -39,6 +44,7 @@ fn main() {
             }
         }
         
+        canvas.present();
         // simulate ~60 hz
         sleep(Duration::from_millis(2));
     }

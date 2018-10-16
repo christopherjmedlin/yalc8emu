@@ -3,6 +3,8 @@ const DISPLAY_WIDTH: usize = 64;
 
 use sdl2::video::Window;
 use sdl2::render::Canvas;
+use sdl2::pixels::Color;
+use sdl2::rect::Rect;
 
 pub struct Display {
     pixels: [[bool; 64]; 32],
@@ -29,7 +31,6 @@ impl Display {
                 y_coord = (i + y) % (DISPLAY_HEIGHT);
                 x_coord = (j + x) % (DISPLAY_WIDTH);
                 
-                println!("{}, {}", x_coord, y_coord);
                 if self.pixels[y_coord][x_coord] == true {
                     pixels_cleared = true;
                 }
@@ -38,17 +39,30 @@ impl Display {
                 self.pixels[y_coord][x_coord] = pixel_value;
             }
         }
-        
+
         self.changed = true;
         pixels_cleared
     }
 
-    pub fn render(&mut self, canvas: Canvas<Window>) {
+    pub fn render(&mut self, canvas: &mut Canvas<Window>) {
+        if !self.changed { return }
 
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+
+        for y in 0..DISPLAY_HEIGHT {
+            for x in 0..DISPLAY_WIDTH {
+                if self.pixels[y][x] {
+                    let x_coord = (x * 10) as i32;
+                    let y_coord = (y * 10) as i32;
+                    let result = canvas.fill_rect(Rect::new(x_coord, y_coord, 10, 10));
+                }
+            }
+        }
     }
     
     pub fn clear(&mut self) {
         self.pixels = [[false; DISPLAY_WIDTH]; DISPLAY_HEIGHT];
+        self.changed = true;
     }
 
     pub fn get_pixel(self, x: usize, y: usize) -> (bool) {
