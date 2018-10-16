@@ -14,14 +14,14 @@ impl Display {
         }
     }
     
-    pub fn draw(&mut self, x: usize, y: usize, sprite: &[u8]) -> (bool) {
+    pub fn draw(&mut self, x: usize, y: usize, n: usize, sprite: &[u8]) -> (bool) {
         let mut y_coord: usize;
         let mut x_coord: usize;
         let mut pixels_cleared: bool = false;
         let mut pixel_value: bool;
 
         
-        for i in 0..sprite.len() {
+        for i in 0..n {
             for j in 0..8 {
                 y_coord = (i + y) % (DISPLAY_HEIGHT);
                 x_coord = (j + x) % (DISPLAY_WIDTH);
@@ -35,12 +35,17 @@ impl Display {
                 self.pixels[y_coord][x_coord] = pixel_value;
             }
         }
-
+        
+        self.changed = true;
         pixels_cleared
     }
     
     pub fn clear(&mut self) {
         self.pixels = [[false; DISPLAY_WIDTH]; DISPLAY_HEIGHT];
+    }
+
+    pub fn get_pixel(self, x: usize, y: usize) -> (bool) {
+        return self.pixels[y][x];
     }
 }
 
@@ -53,9 +58,10 @@ mod tests {
         let mut display = Display::new();
         let sprite = [0xF0, 0x90, 0x90, 0x90, 0xF0];
         
-        assert!(!display.draw(2, 5, &sprite));
+        assert!(!display.draw(2, 5, 5, &sprite));
         // test collision
-        assert!(display.draw(5, 5, &sprite));
+        assert!(display.draw(5, 5, 5, &sprite));
+        assert!(display.changed);
 
         assert_eq!(display.pixels[5][5..9], [true, true, true, true]);
         assert_eq!(display.pixels[7][5..9], [true, false, false, true]);
@@ -67,7 +73,7 @@ mod tests {
         let mut display = Display::new();
         let sprite = [0xF0, 0x90, 0x90, 0x90, 0xF0];
 
-        let pixels_cleared = display.draw(63, 31, &sprite);
+        let pixels_cleared = display.draw(63, 31, 5, &sprite);
         
         assert_eq!(display.pixels[31][63], true);
         assert_eq!(display.pixels[31][0], true);

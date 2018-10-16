@@ -201,6 +201,16 @@ fn test_Bnnn() {
 }
 
 #[test]
+fn test_Dxyn() {
+    let mut chip8 = Chip8::new();
+    chip8.ram[0x200] = 0xF0;
+    chip8.i = 0x200;
+    chip8.run_opcode(0xD011);
+    
+    assert_eq!(chip8.display.get_pixel(0, 0), true);
+}
+
+#[test]
 fn test_Cnnn() {
     let mut chip8 = Chip8::new();
     chip8.v[1] = 15;

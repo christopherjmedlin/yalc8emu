@@ -6,6 +6,7 @@ use fonts;
 use std::num::Wrapping;
 use rand;
 use cpu::timers::TimerSubsystem;
+use display::Display;
 
 pub struct Chip8 {
     ram: [u8; RAM_SIZE],
@@ -14,7 +15,9 @@ pub struct Chip8 {
     i: usize,
     pc: usize,
     sp: usize,
-    timer_subsystem: TimerSubsystem
+    timer_subsystem: TimerSubsystem,
+
+    pub display: Display,
 }
 
 impl Chip8 {
@@ -28,7 +31,9 @@ impl Chip8 {
             i: 0,
             pc: 0x200,
             sp: 0,
-            timer_subsystem: TimerSubsystem::new()
+            timer_subsystem: TimerSubsystem::new(),
+
+            display: Display::new()
         };
         for (i, &font) in fonts::FONTS.iter().enumerate() {
             cpu.ram[i] = font;     
@@ -111,7 +116,7 @@ impl Chip8 {
     
     // Clear display
     fn op_00E0(&mut self) -> (usize) {
-        //unimplemented
+        self.display.clear();
         2
     }
     
@@ -281,7 +286,15 @@ impl Chip8 {
 
     // Display n-byte sprite starting at memory location I at (Vx, Vy)
     fn op_Dxyn(&mut self, x: usize, y: usize, n: usize) -> (usize) {
-        // unimplemented
+        let mut sprite = [0; 15];
+        
+        for j in 0..n {
+            sprite[j] = self.ram[self.i + j];
+        }
+
+        let x_coord = self.v[x] as usize;
+        let y_coord = self.v[y] as usize;
+        self.display.draw(x_coord, y_coord, n, &sprite);
         2
     }
 
