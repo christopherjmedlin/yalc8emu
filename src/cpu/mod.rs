@@ -7,6 +7,7 @@ use std::num::Wrapping;
 use rand;
 use cpu::timers::TimerSubsystem;
 use display::Display;
+use keypad:: Keypad;
 
 pub struct Chip8 {
     pub ram: [u8; RAM_SIZE],
@@ -18,6 +19,7 @@ pub struct Chip8 {
     timer_subsystem: TimerSubsystem,
 
     pub display: Display,
+    pub keypad: Keypad,
 }
 
 impl Chip8 {
@@ -33,7 +35,8 @@ impl Chip8 {
             sp: 0,
             timer_subsystem: TimerSubsystem::new(),
 
-            display: Display::new()
+            display: Display::new(),
+            keypad: Keypad::new()
         };
         for (i, &font) in fonts::FONTS.iter().enumerate() {
             cpu.ram[i] = font;     

@@ -2,6 +2,7 @@ mod cpu;
 mod fonts;
 mod rom;
 mod display;
+mod keypad;
 
 extern crate rand;
 extern crate sdl2;
@@ -40,12 +41,14 @@ fn main() {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} => { break 'main },
+                Event::KeyDown {..} |
+                Event::KeyUp {..} => { cpu.keypad.handle_event(&event); },
                 _ => {}
             }
         }
         
         canvas.present();
         // simulate ~60 hz
-        sleep(Duration::from_millis(2));
+        sleep(Duration::from_millis(1));
     }
 }
