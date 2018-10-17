@@ -34,7 +34,7 @@ fn main() {
 
     'main: loop {
         cpu.cycle();
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        canvas.set_draw_color(Color::RGB(0,0,0));
         canvas.clear();
         cpu.display.render(&mut canvas);
 
@@ -49,6 +49,6 @@ fn main() {
         
         canvas.present();
         // simulate ~60 hz
-        sleep(Duration::from_millis(1));
+        sleep(Duration::from_millis(2));
     }
 }

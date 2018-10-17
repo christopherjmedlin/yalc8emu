@@ -306,14 +306,14 @@ impl Chip8 {
 
     // Skip next instruction if key with the value of Vx is pressed
     fn op_Ex9E (&mut self, x: usize) -> (usize) {
-        // unimplemented
+        if self.keypad.get_key(self.v[x] as usize) { return 4 }
         2
     }
     
     // Skip next instruction if key with value of Vx is NOT pressed
     fn op_ExA1(&mut self, x: usize) -> (usize) {
-        // unimplemented
-        2
+        if self.keypad.get_key(self.v[x] as usize) { return 2 }
+        4
     }
 
     // Set Vx = delay timer value
@@ -324,7 +324,15 @@ impl Chip8 {
 
     // Wait for key press, store value in Vx
     fn op_Fx0A(&mut self, x: usize) -> (usize) {
-        // unimplemented
+        let keypress = self.keypad.wait_for_keypress();
+        if keypress == 0x10 {
+            // keep pc where it is and keep executing this same instruction
+            // until keypress
+            return 0;
+        }
+        else {
+            self.v[x] = keypress;
+        }
         2
     }
 

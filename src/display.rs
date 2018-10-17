@@ -36,7 +36,7 @@ impl Display {
                 }
 
                 pixel_value = sprite[i] & 0x80 >> j != 0;
-                self.pixels[y_coord][x_coord] = pixel_value;
+                self.pixels[y_coord][x_coord] ^= pixel_value;
             }
         }
 
@@ -47,7 +47,7 @@ impl Display {
     pub fn render(&mut self, canvas: &mut Canvas<Window>) {
         if !self.changed { return }
 
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.set_draw_color(Color::RGB(255, 165, 0));
 
         for y in 0..DISPLAY_HEIGHT {
             for x in 0..DISPLAY_WIDTH {
