@@ -3,6 +3,7 @@ mod fonts;
 mod rom;
 mod display;
 mod keypad;
+mod audio;
 
 extern crate rand;
 extern crate sdl2;
@@ -27,7 +28,9 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut canvas = window.into_canvas().build().unwrap();
     
+    let audio_subsystem = sdl_context.audio().unwrap();
     let mut cpu = cpu::Chip8::new();
+    let mut audio = audio::Audio::new(&audio_subsystem);
     let mut rom = [0; 3583];
     rom::load_rom_file(&args[1], &mut rom);
     cpu.load_rom(&rom);
@@ -48,6 +51,12 @@ fn main() {
             }
         }
         
+        if cpu.should_beep() {
+            audio.start_beep();
+        } else {
+            audio.stop_beep();
+        }
+
         // simulate ~60 hz
         sleep(Duration::from_millis(2));
     }

@@ -60,6 +60,10 @@ impl Chip8 {
         //println!("{:x}, {}", self.get_opcode(), self.pc);
     }
 
+    pub fn should_beep(&mut self) -> bool {
+        return self.timer_subsystem.sound > 0;
+    }
+
     pub fn run_opcode(&mut self, opcode: u16) {
         let nibbles = (
             (opcode & 0xf000) >> 12 as u8,
