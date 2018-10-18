@@ -31,7 +31,7 @@ impl Display {
                 y_coord = (i + y) % (DISPLAY_HEIGHT);
                 x_coord = (j + x) % (DISPLAY_WIDTH);
                 
-                if self.pixels[y_coord][x_coord] == true {
+                if self.pixels[y_coord][x_coord] {
                     pixels_cleared = true;
                 }
 

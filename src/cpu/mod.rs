@@ -300,7 +300,7 @@ impl Chip8 {
 
         let x_coord = self.v[x] as usize;
         let y_coord = self.v[y] as usize;
-        self.display.draw(x_coord, y_coord, n, &sprite);
+        self.v[0xF] = self.display.draw(x_coord, y_coord, n, &sprite) as u8;
         2
     }
 

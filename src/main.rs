@@ -37,6 +37,7 @@ fn main() {
         canvas.set_draw_color(Color::RGB(0,0,0));
         canvas.clear();
         cpu.display.render(&mut canvas);
+        canvas.present();
 
         for event in event_pump.poll_iter() {
             match event {
@@ -47,7 +48,6 @@ fn main() {
             }
         }
         
-        canvas.present();
         // simulate ~60 hz
         sleep(Duration::from_millis(2));
     }
